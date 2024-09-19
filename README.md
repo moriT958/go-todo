@@ -9,7 +9,11 @@
     - id指定での取得: `GET /todo/{id}`
   - todoの更新: `PATCH /todo/{id}`
   - todoの削除: `DELETE /todo/{id}`
-  
+
 - ユーザ管理機能
   - jwtを使用して自前で作る
   - google認証
+
+## Dockerコマンド
+`docker image build -t [name:tag] [path]`: イメージのビルド  
+`docker container run --rm [imageName:tag]`: コンテナの起動
