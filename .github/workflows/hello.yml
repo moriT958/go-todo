@@ -1,4 +1,4 @@
-name: Hello Action
+name: HelloAction
 
 on:
   push:
