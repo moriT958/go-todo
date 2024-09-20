@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"go-todo/models"
 	"log"
 	"net/http"
 	"os"
@@ -46,6 +47,11 @@ func main() {
 		log.Println(err)
 	} else {
 		log.Println("DB connection is alive")
+	}
+
+	err = models.InitDB(db)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	http.HandleFunc("/", helloHandler)
