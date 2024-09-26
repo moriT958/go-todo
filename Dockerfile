@@ -3,11 +3,10 @@ FROM golang:1.22.5-alpine3.20 AS build
 
 WORKDIR /app
 
-# COPY go.sum
-COPY go.mod main.go ./
+COPY . ./
 
 RUN go mod download \
-    && go build -o main /app/main.go
+    && go build -o main ./main.go
 
 # ステージ2
 FROM alpine:3.20
