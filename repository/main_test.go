@@ -1,63 +1,104 @@
 package repository_test
 
 import (
-	"go-todo/repository"
+	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 )
 
-var TestPM *repository.PostgresManager
+var testDB *sql.DB
+
+var (
+	dbUsr  = "postgres"
+	dbPwd  = "postgres"
+	dbName = "mydb"
+	dbConn = fmt.Sprintf("postgres://%s:%s@127.0.0.1:5432/%s?sslmode=disable", dbUsr, dbPwd, dbName)
+)
 
 func TestMain(m *testing.M) {
-	// Get connection to DB
-	TestPM, err := repository.NewPostgresManager()
-	if err != nil {
-		os.Exit(1)
-	}
-	defer TestPM.Close()
-
-	err = setup(TestPM)
+	err := setup()
 	if err != nil {
 		os.Exit(1)
 	}
 
 	m.Run()
 
-	err = tearDown(TestPM)
-	if err != nil {
-		os.Exit(1)
-	}
+	teardown()
 }
 
-func setup(tpm *repository.PostgresManager) error {
+func connectDB() error {
+	var err error
+	testDB, err = sql.Open("postgres", dbConn)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-	// DB connection check
-	err := tpm.Check()
+func setupTestData() error {
+	f, err := os.Open("./testdata/setup.sql")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	query := make([]byte, 1024)
+	count, err := f.Read(query)
 	if err != nil {
 		return err
 	}
 
-	// migrate table
-	if err = tpm.Migrate(`
-		CREATE TABLE IF NOT EXISTS testDB (
-			id SERIAL PRIMARY KEY,
-			task VARCHAR(20) UNIQUE NOT NULL,
-			done BOOLEAN NOT NULL DEFAULT false,
-			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			completed_at TIMESTAMP DEFAULT NULL
-		);
-	`); err != nil {
+	_, err = testDB.Exec(string(query[:count]))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func cleanupDB() error {
+	f, err := os.Open("./testdata/cleanup.sql")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	query := make([]byte, 1024)
+	count, err := f.Read(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = testDB.Exec(string(query[:count]))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func setup() error {
+	if err := connectDB(); err != nil {
+		fmt.Println(err, "at connectDB")
+		return err
+	}
+
+	// DBのクリーンアップ
+	if err := cleanupDB(); err != nil {
+		fmt.Println(err, "at cleanupDB")
+		return err
+	}
+
+	// 初期データの挿入
+	if err := setupTestData(); err != nil {
+		fmt.Println(err, "at setupTestData")
 		return err
 	}
 
 	return nil
 }
 
-func tearDown(tpm *repository.PostgresManager) error {
-	if err := tpm.Migrate(`
-		DROP TABLE testDB;
-	`); err != nil {
-		return err
-	}
-	return nil
+func teardown() {
+	// DBのクリーンアップ
+	cleanupDB()
+	testDB.Close()
 }
