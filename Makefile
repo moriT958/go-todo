@@ -4,7 +4,10 @@ include .env
 .PHONY: migrate
 migrate:
 	@echo "Applying schema changes to the local environment..."
-	atlas schema apply --env local
+	atlas schema apply \
+  	--url "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(POSTGRES_DB)?search_path=public&sslmode=disable" \
+  	--to "file://database/schema.sql" \
+  	--dev-url "docker://postgres/15/dev?search_path=public"
 
 
 # Goコマンド
