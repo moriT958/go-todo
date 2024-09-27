@@ -14,11 +14,15 @@
   - jwtを使用して自前で作る
   - google認証
 
-## Dockerコマンド
+## 開発用コマンド
 `docker image build -t [name:tag] [path]`: appイメージのビルド  
 `docker container run --rm [imageName:tag]`: appコンテナの起動
 
-`docker compose up -d`: DB立ち上げ  
-`docker compose down`: 停止
+`make up`: DBコンテナ立ち上げ  
+`make psql`: DBコンテナに入る  
+`make down`: 停止
 
-`docker compose exec -T db psql -U [username] -d [dbname] < [sqlfile]`: マイグレーション  
+`make migrate`: atlasでのスキーママイグレーションの更新  
+
+`make build`: GoAPIのビルド  
+`make run`: GoAPIビルド+起動
