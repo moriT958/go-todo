@@ -3,8 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
-	"go-todo/migrations"
 	"log"
 	"net/http"
 	"os"
@@ -27,10 +25,7 @@ func helloHandler(w http.ResponseWriter, _ *http.Request) {
 
 func main() {
 	loadEnv()
-	dbUsr := os.Getenv("POSTGRES_USER")
-	dbPwd := os.Getenv("POSTGRES_PASSWORD")
-	dbName := os.Getenv("POSTGRES_DB")
-	dbConn := fmt.Sprintf("postgres://%s:%s@127.0.0.1:5432/%s?sslmode=disable", dbUsr, dbPwd, dbName)
+	dbConn := os.Getenv("DATABASE_URL")
 
 	// Get connection to DB
 	db, err := sql.Open("postgres", dbConn)
@@ -46,11 +41,6 @@ func main() {
 		log.Println(err)
 	} else {
 		log.Println("Your Database is Alive!")
-	}
-
-	// DB Migration
-	if err := migrations.Migrate(db, "migrations/0_create_todo_table.sql"); err != nil {
-		log.Println(err)
 	}
 
 	http.HandleFunc("/", helloHandler)
