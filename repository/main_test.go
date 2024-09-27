@@ -9,6 +9,7 @@ import (
 
 var testDB *sql.DB
 
+// テスト用DBの環境変数
 var (
 	dbUsr  = "postgres"
 	dbPwd  = "postgres"
