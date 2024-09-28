@@ -8,9 +8,10 @@ import (
 
 const todoNumPerPage = 10
 
+// DBから得たデータを構造体に変換して返す。
 func CreateTodo(db *sql.DB, todo models.Todo) (models.Todo, error) {
 	// (注)returningはrowを返す
-	const query = `INSERT INTO todos (task) VALUES ($1) RETURNING id;`
+	const query = `INSERT INTO todos (task) VALUES ($1) RETURNING id, done, created_at;`
 
 	var newTodo models.Todo
 	newTodo.Task = todo.Task
@@ -19,11 +20,11 @@ func CreateTodo(db *sql.DB, todo models.Todo) (models.Todo, error) {
 	if err := row.Err(); err != nil {
 		return models.Todo{}, err
 	}
-	if err := row.Scan(&newTodo.TodoID); err != nil {
+	if err := row.Scan(&newTodo.TodoID, &newTodo.Done, &newTodo.CreatedAt); err != nil {
 		return models.Todo{}, err
 	}
 
-	return newTodo, nil // idとtaskのみ返す
+	return newTodo, nil
 }
 
 func ReadTodos(db *sql.DB, page int) ([]models.Todo, error) {
@@ -33,6 +34,8 @@ func ReadTodos(db *sql.DB, page int) ([]models.Todo, error) {
 		return []models.Todo{}, err
 	}
 
+	var createdTime sql.NullTime
+
 	rows, err := db.Query(query, todoNumPerPage, (page-1)*todoNumPerPage)
 	if err != nil {
 		return nil, err // ※スライスのゼロ値はnil
@@ -41,7 +44,11 @@ func ReadTodos(db *sql.DB, page int) ([]models.Todo, error) {
 	todoArray := make([]models.Todo, 0)
 	for rows.Next() {
 		var todo models.Todo
-		rows.Scan(&todo.TodoID, &todo.Task, &todo.Done, &todo.CreatedAt, &todo.CompletedAt)
+		rows.Scan(&todo.TodoID, &todo.Task, &todo.Done, &createdTime)
+
+		if createdTime.Valid {
+			todo.CreatedAt = createdTime.Time
+		}
 
 		todoArray = append(todoArray, todo)
 	}
@@ -53,34 +60,42 @@ func ReadTodoByID(db *sql.DB, id int) (models.Todo, error) {
 	const query = `SELECT * FROM todos WHERE id = $1;`
 
 	var gotTodo models.Todo
-	var createdTime, completedTime sql.NullTime // postgres側で設定されたNULL値がGoで扱えない可能性があるため
+	var createdTime sql.NullTime // postgres側の値がNULLの可能性があるため
 
 	row := db.QueryRow(query, id)
 	if err := row.Err(); err != nil {
 		return models.Todo{}, err
 	}
 
-	if err := row.Scan(&gotTodo.TodoID, &gotTodo.Task, &gotTodo.Done, &createdTime, &completedTime); err != nil {
+	if err := row.Scan(&gotTodo.TodoID, &gotTodo.Task, &gotTodo.Done, &createdTime); err != nil {
 		return models.Todo{}, err
 	}
 
-	// sql側で設定された時間がNULLじゃなかったらgoの構造体に代入
+	// sql側でNULLじゃなかったらgoの構造体に代入
 	if createdTime.Valid {
 		gotTodo.CreatedAt = createdTime.Time
-	}
-	if completedTime.Valid {
-		gotTodo.CompletedAt = completedTime.Time
 	}
 
 	return gotTodo, nil
 }
 
-// func CompleteTodo(db *sql.DB, id int) (models.Todo, error) {
-// 	const query = `UPDATE `
+func CompleteTodo(db *sql.DB, id int) (models.Todo, error) {
+	const query = `UPDATE todos SET done = true WHERE id = $1 RETURNING id;`
 
-// 	tx, err := db.Begin()
-// 	if err != nil {
-// 		return models.Todo{}, err
-// 	}
+	row := db.QueryRow(query, id)
+	if err := row.Err(); err != nil {
+		return models.Todo{}, err
+	}
+
+	var completedTodo models.Todo
+	completedTodo.TodoID = id
+	if err := row.Scan(&completedTodo.Task); err != nil {
+		return models.Todo{}, err
+	}
+
+	return completedTodo, nil
+}
+
+// func DeleteTodo(db *sql.DB, id int) error {
 
 // }

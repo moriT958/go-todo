@@ -25,10 +25,10 @@ func helloHandler(w http.ResponseWriter, _ *http.Request) {
 
 func main() {
 	loadEnv()
-	dbConn := os.Getenv("DATABASE_URL")
+	dsn := os.Getenv("DATABASE_URL")
 
 	// Get connection to DB
-	db, err := sql.Open("postgres", dbConn)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Println(err)
 	} else {
