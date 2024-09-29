@@ -15,14 +15,14 @@
   - google認証
 
 ## 開発用コマンド
-`docker image build -t [name:tag] [path]`: appイメージのビルド  
-`docker container run --rm [imageName:tag]`: appコンテナの起動
+`docker image build -t [name:tag] [path]`: appイメージのビルド   
+`docker container run --rm [imageName:tag]`: appコンテナの起動  
 
-`make up`: DBコンテナ立ち上げ  
-`make psql`: DBコンテナに入る  
-`make down`: 停止
+`docker compose up -d`: DBコンテナ立ち上げ  
+`docker compose down`: DBコンテナを落とす  
+`docker compose exec db psql -U postgres -d mydb`: DBコンテナに入る  
 
+`make apply`: atlasでの理想スキーマをDBに反映  
 `make migrate`: atlasでのスキーママイグレーションの更新  
+`make inspect`: DBのスキーマをatlasでの理想スキーマファイルに反映 
 
-`make build`: GoAPIのビルド  
-`make run`: GoAPIビルド+起動
