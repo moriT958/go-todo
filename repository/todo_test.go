@@ -75,3 +75,33 @@ func TestReadTodoByID(t *testing.T) {
 		})
 	}
 }
+
+func TestCompleteTodo(t *testing.T) {
+	const id = 1
+
+	expectedTask := fixture.TodoTestData[0].Task
+
+	got, err := repository.CompleteTodo(Fxt.Tx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got.Task != expectedTask {
+		t.Errorf("Task: Want %s, but Got %s\n", expectedTask, got.Task)
+	}
+}
+
+func TestDeleteTodo(t *testing.T) {
+	const id = 1
+
+	expectedTask := fixture.TodoTestData[0].Task
+
+	got, err := repository.DeleteTodo(Fxt.Tx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got.Task != expectedTask {
+		t.Errorf("Task: Want %s, but Got %s\n", expectedTask, got.Task)
+	}
+}
