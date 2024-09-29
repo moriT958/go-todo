@@ -3,7 +3,7 @@ package repository_test
 import (
 	"go-todo/models"
 	"go-todo/repository"
-	"go-todo/repository/testdata"
+	"go-todo/repository/fixture"
 	"testing"
 )
 
@@ -14,7 +14,7 @@ func TestCreateTodo(t *testing.T) {
 
 	const expectedTodoID = 4
 
-	newTodo, err := repository.CreateTodo(testDB, testTodo)
+	newTodo, err := repository.CreateTodo(Fxt.Tx, testTodo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,14 +25,14 @@ func TestCreateTodo(t *testing.T) {
 
 	t.Cleanup(func() {
 		const query = "DELETE FROM todos WHERE task = $1;"
-		testDB.Exec(query, testTodo.Task)
+		Fxt.Tx.Exec(query, testTodo.Task)
 	})
 }
 
 func TestReadTodos(t *testing.T) {
-	expectedNum := len(testdata.TodoTestData)
+	expectedNum := len(fixture.TodoTestData)
 
-	got, err := repository.ReadTodos(testDB, 1)
+	got, err := repository.ReadTodos(Fxt.Tx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,21 +50,21 @@ func TestReadTodoByID(t *testing.T) {
 	}{
 		{
 			testTitle: "subtest1",
-			expected:  testdata.TodoTestData[0],
+			expected:  fixture.TodoTestData[0],
 		},
 		{
 			testTitle: "subtest2",
-			expected:  testdata.TodoTestData[1],
+			expected:  fixture.TodoTestData[1],
 		},
 		{
 			testTitle: "subtest3",
-			expected:  testdata.TodoTestData[2],
+			expected:  fixture.TodoTestData[2],
 		},
 	}
 
 	for i, test := range tests {
 		t.Run(test.testTitle, func(t *testing.T) {
-			got, err := repository.ReadTodoByID(testDB, i+1)
+			got, err := repository.ReadTodoByID(Fxt.Tx, i+1)
 			if err != nil {
 				t.Fatal(err)
 			}
