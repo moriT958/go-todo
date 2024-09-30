@@ -12,6 +12,7 @@ func (s *Service) CreateTodo(todo models.Todo) (models.Todo, error) {
 	if err != nil {
 		return models.Todo{}, errors.New("at Service CreateTodo")
 	}
+
 	return newTodo, nil
 }
 

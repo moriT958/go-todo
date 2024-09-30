@@ -12,7 +12,7 @@ const todoNumPerPage = 10
 // DBから得たデータを構造体に変換して返す。
 func CreateTodo(db database.DB, todo models.Todo) (models.Todo, error) {
 	// (注)returningはrowを返す
-	const query = `INSERT INTO todos (task) VALUES ($1) RETURNING id;`
+	const query = `INSERT INTO todos (task) VALUES ($1) RETURNING id, created_at;`
 
 	var newTodo models.Todo
 	newTodo.Task = todo.Task
@@ -21,7 +21,7 @@ func CreateTodo(db database.DB, todo models.Todo) (models.Todo, error) {
 	if err := row.Err(); err != nil {
 		return models.Todo{}, err
 	}
-	if err := row.Scan(&newTodo.TodoID); err != nil {
+	if err := row.Scan(&newTodo.TodoID, &newTodo.CreatedAt); err != nil {
 		return models.Todo{}, err
 	}
 
