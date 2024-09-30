@@ -2,26 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
+	"go-todo/controller"
+	"go-todo/service"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
-
-func helloHandler(w http.ResponseWriter, _ *http.Request) {
-	res := map[string]string{
-		"Hello,": "World!",
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		log.Println(err)
-	}
-}
 
 func main() {
 	loadEnv()
@@ -43,9 +33,15 @@ func main() {
 		log.Println("Your Database is Alive!")
 	}
 
-	http.HandleFunc("/", helloHandler)
+	s := service.NewService(db)
+	tc := controller.NewTodoController(s)
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
+	r := mux.NewRouter()
+	r.HandleFunc("/", tc.HelloHandler).Methods(http.MethodGet)
+	r.HandleFunc("/todo", tc.PostTodoHandler).Methods(http.MethodPost)
+	r.HandleFunc("/todo", tc.GetTodoList).Methods(http.MethodGet)
+
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
 }
 
 func loadEnv() error {
