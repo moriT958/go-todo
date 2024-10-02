@@ -2,13 +2,13 @@ package models
 
 import (
 	"time"
-
-	_ "github.com/lib/pq"
 )
 
 type Todo struct {
-	TodoID    int       `json:"todo_id"`
-	Task      string    `json:"task"`
-	Done      bool      `json:"done"`
-	CreatedAt time.Time `json:"created_at"`
+	TodoID    int
+	Task      string
+	Done      bool
+	CreatedAt time.Time
 }
+
+// TODO: ORM使ってデータベーススキーマ定義する。

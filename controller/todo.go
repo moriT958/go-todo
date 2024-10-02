@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-todo/controller/service"
 	"go-todo/models"
+	"go-todo/schemas"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,11 +12,11 @@ import (
 
 // DI (controller -> seviceへの依存。serviceはインターフェースとして与える。)
 type TodoController struct {
-	sevice service.ServiceInterface
+	service service.ServiceInterface
 }
 
 func NewTodoController(s service.ServiceInterface) *TodoController {
-	return &TodoController{sevice: s}
+	return &TodoController{service: s}
 }
 
 func (c *TodoController) HelloHandler(w http.ResponseWriter, _ *http.Request) {
@@ -38,14 +39,18 @@ func (c *TodoController) PostTodoHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	createdTodo, err := c.sevice.CreateTodo(reqTodo)
+	createdTodo, err := c.service.CreateTodo(reqTodo)
 	if err != nil {
 		log.Println("create fail error at PostTodoHandler")
 		return
 	}
 
+	// レスポンススキーマに変換
+	var res schemas.PostTodoResponse
+	res.TodoID, res.Task = createdTodo.TodoID, createdTodo.Task
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(createdTodo)
+	json.NewEncoder(w).Encode(res)
 }
 
 func (c *TodoController) GetTodoList(w http.ResponseWriter, r *http.Request) {
@@ -64,13 +69,26 @@ func (c *TodoController) GetTodoList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	todoList, err := c.sevice.ReadTodos(page)
+	todoList, err := c.service.ReadTodos(page)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		log.Println(err)
 		return
 	}
 
+	// レスポンススキーマに変換
+	var res schemas.GetTodoListResponse
+	for _, todo := range todoList {
+		res.Todos = append(res.Todos, schemas.Todo{
+			TodoID:    todo.TodoID,
+			Task:      todo.Task,
+			Done:      todo.Done,
+			CreatedAt: todo.CreatedAt,
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(todoList)
+	json.NewEncoder(w).Encode(res)
 }
+
+// TODO: 残りのハンドラ実装する
