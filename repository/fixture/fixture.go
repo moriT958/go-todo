@@ -2,6 +2,8 @@ package fixture
 
 import (
 	"database/sql"
+
+	_ "github.com/lib/pq"
 )
 
 const dbConn = "postgres://postgres:postgres@127.0.0.1:5432/mydb?sslmode=disable"
