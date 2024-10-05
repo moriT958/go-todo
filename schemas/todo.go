@@ -1,12 +1,9 @@
 package schemas
 
-import "time"
+import "go-todo/models"
 
-type Todo struct {
-	TodoID    int       `json:"todo_id"`
-	Task      string    `json:"task"`
-	Done      bool      `json:"done"`
-	CreatedAt time.Time `json:"created_at"`
+type PostTodoRequest struct {
+	Task string `json:"task"`
 }
 
 type PostTodoResponse struct {
@@ -15,7 +12,19 @@ type PostTodoResponse struct {
 }
 
 type GetTodoListResponse struct {
-	Todos []Todo `json:"data"`
+	Todos []models.Todo `json:"data"`
 }
 
-// TODO: そのほかのスキーマも設定する。
+type GetTodoByIDResponse struct {
+	Todo models.Todo `json:"data"`
+}
+
+type CompleteTodoResponse struct {
+	TodoID int    `json:"todo_id"`
+	Task   string `json:"task"`
+}
+
+type DeleteTodoResponse struct {
+	TodoID int    `json:"todo_id"`
+	Task   string `json:"task"`
+}
