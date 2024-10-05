@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // DI (controller -> seviceへの依存。serviceはインターフェースとして与える。)
@@ -32,16 +34,21 @@ func (c *TodoController) HelloHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (c *TodoController) PostTodoHandler(w http.ResponseWriter, r *http.Request) {
-	var reqTodo models.Todo
+	var reqTodo schemas.PostTodoRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqTodo); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		log.Println("decode error at PostTodoHandler")
+		log.Println(err, "decode error at PostTodoHandler")
 		return
 	}
 
-	createdTodo, err := c.service.CreateTodo(reqTodo)
+	todo := models.Todo{
+		Task: reqTodo.Task,
+	}
+
+	createdTodo, err := c.service.CreateTodo(todo)
 	if err != nil {
-		log.Println("create fail error at PostTodoHandler")
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err, "create fail error at PostTodoHandler")
 		return
 	}
 
@@ -53,7 +60,7 @@ func (c *TodoController) PostTodoHandler(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(res)
 }
 
-func (c *TodoController) GetTodoList(w http.ResponseWriter, r *http.Request) {
+func (c *TodoController) GetTodoListHandler(w http.ResponseWriter, r *http.Request) {
 	queryMap := r.URL.Query()
 
 	page := 1
@@ -61,8 +68,8 @@ func (c *TodoController) GetTodoList(w http.ResponseWriter, r *http.Request) {
 	// pageパラメータが存在し、かつ値が有効である場合
 	if pageStr, ok := queryMap["page"]; len(pageStr) > 0 && ok {
 		if pageInt, err := strconv.Atoi(pageStr[0]); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Println("query parse error at GetTodoList")
+			w.WriteHeader(http.StatusBadRequest)
+			log.Println("query parse error at GetTodoListHandler")
 			return
 		} else {
 			page = pageInt
@@ -72,14 +79,14 @@ func (c *TodoController) GetTodoList(w http.ResponseWriter, r *http.Request) {
 	todoList, err := c.service.ReadTodos(page)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		log.Println(err)
+		log.Println(err, ":at GetTodoListHandler")
 		return
 	}
 
 	// レスポンススキーマに変換
 	var res schemas.GetTodoListResponse
 	for _, todo := range todoList {
-		res.Todos = append(res.Todos, schemas.Todo{
+		res.Todos = append(res.Todos, models.Todo{
 			TodoID:    todo.TodoID,
 			Task:      todo.Task,
 			Done:      todo.Done,
@@ -91,4 +98,70 @@ func (c *TodoController) GetTodoList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-// TODO: 残りのハンドラ実装する
+func (c *TodoController) GetTodoByIDHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err, ": at GetTodoByIDHandler")
+		return
+	}
+
+	todo, err := c.service.ReadTodoByID(id)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		log.Println(err, ": at GetTodoByIDHandler")
+	}
+
+	res := schemas.GetTodoByIDResponse{
+		Todo: todo,
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (c *TodoController) CompleteTodoHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err, ": at CompleteTodoHandler")
+		return
+	}
+
+	todo, err := c.service.CompleteTodo(id)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		log.Println(err, ": at CompleteTodoHandler")
+	}
+
+	res := schemas.CompleteTodoResponse{
+		TodoID: todo.TodoID,
+		Task:   todo.Task,
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (c *TodoController) DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err, ": at DeleteTodoHandler")
+		return
+	}
+
+	todo, err := c.service.DeleteTodo(id)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		log.Println(err, ": at DeleteTodoHandler")
+	}
+
+	res := schemas.DeleteTodoResponse{
+		TodoID: todo.TodoID,
+		Task:   todo.Task,
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(res)
+}

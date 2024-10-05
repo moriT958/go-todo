@@ -5,10 +5,8 @@ import (
 )
 
 type Todo struct {
-	TodoID    int
-	Task      string
-	Done      bool
-	CreatedAt time.Time
+	TodoID    int       `json:"todo_id"`
+	Task      string    `json:"task"`
+	Done      bool      `json:"done"`
+	CreatedAt time.Time `json:"created_at"`
 }
-
-// TODO: ORM使ってデータベーススキーマ定義する。

@@ -1,6 +1,9 @@
 package tests
 
-import "go-todo/models"
+import (
+	"errors"
+	"go-todo/models"
+)
 
 type ServicMock struct{}
 
@@ -9,6 +12,10 @@ func NewServiceMock() *ServicMock {
 }
 
 func (sm ServicMock) CreateTodo(todo models.Todo) (models.Todo, error) {
+	if todo.Task == "" {
+		return models.Todo{}, errors.New("validation error(task is empty)")
+	}
+
 	return TodoTestData[0], nil
 }
 

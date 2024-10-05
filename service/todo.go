@@ -8,9 +8,13 @@ import (
 )
 
 func (s *Service) CreateTodo(todo models.Todo) (models.Todo, error) {
+	if todo.Task == "" {
+		return models.Todo{}, errors.New("validation error(task is empty)")
+	}
+
 	newTodo, err := repository.CreateTodo(s.db, todo)
 	if err != nil {
-		return models.Todo{}, errors.New("at Service CreateTodo")
+		return models.Todo{}, err
 	}
 
 	return newTodo, nil
