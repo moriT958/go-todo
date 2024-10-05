@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
 func TestPostTodoHandler(t *testing.T) {
@@ -25,8 +27,6 @@ func TestPostTodoHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			body, _ := json.Marshal(tt.req)                                             // 構造体をbyte型のjsonに変換
 			req := httptest.NewRequest(http.MethodPost, "/todo", bytes.NewBuffer(body)) // byte.NewBufferは引数に与えられたバイトを含むバッファを作成
-
-			fmt.Println((*req).Body)
 
 			// recorderはレスポンスの検証機能を提供する。(responseWriterの代わりに使用)
 			rec := httptest.NewRecorder() // NewRecorderはhttp.ResponseWriterインターフェースを満たす。
@@ -47,8 +47,8 @@ func TestGetTodoListHandler(t *testing.T) {
 		query      string
 		resultCode int
 	}{
-		{name: "number query", query: "1", resultCode: http.StatusOK},
-		{name: "alphabet query", query: "aaa", resultCode: http.StatusBadRequest},
+		{name: "正常系", query: "1", resultCode: http.StatusOK},
+		{name: "異常系", query: "aaa", resultCode: http.StatusBadRequest},
 	}
 
 	for _, tt := range tests {
@@ -56,19 +56,45 @@ func TestGetTodoListHandler(t *testing.T) {
 			url := fmt.Sprintf("/todo?page=%s", tt.query)
 			req := httptest.NewRequest(http.MethodGet, url, nil)
 
-			res := httptest.NewRecorder()
+			rec := httptest.NewRecorder()
 
-			TC.GetTodoListHandler(res, req)
+			TC.GetTodoListHandler(rec, req)
 
-			if res.Code != tt.resultCode {
-				t.Errorf("unexpected StatusCode: want %d but %d\n", tt.resultCode, res.Code)
+			if rec.Code != tt.resultCode {
+				t.Errorf("unexpected StatusCode: want %d but %d\n", tt.resultCode, rec.Code)
 			}
 		})
 	}
 }
 
-func TestGetTodoByIDHandler(t *testing.T) {}
+func TestGetTodoByIDHandler(t *testing.T) {
+	var tests = []struct {
+		name       string
+		id         string
+		resultCode int
+	}{
+		{name: "正常系", id: "1", resultCode: http.StatusOK},
+		{name: "異常系", id: "5", resultCode: http.StatusNotFound},
+	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/todo/"+tt.id, nil)
+
+			rec := httptest.NewRecorder()
+
+			r := mux.NewRouter()
+			r.HandleFunc("/todo/{id:[0-9]+}", TC.GetTodoByIDHandler).Methods(http.MethodGet)
+			r.ServeHTTP(rec, req)
+
+			if rec.Code != tt.resultCode {
+				t.Errorf("unexpected StatusCode: want %d but %d\n", tt.resultCode, rec.Code)
+			}
+		})
+	}
+}
+
+// TODO: コントローラー残りテスト
 func TestCompleteTodoHandler(t *testing.T) {}
 
 func TestGetDeleteTodoHandler(t *testing.T) {}
