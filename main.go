@@ -38,12 +38,12 @@ func main() {
 
 	// TODO: ルータのまとめるリファクタ
 	r := mux.NewRouter()
-	r.HandleFunc("/", tc.HelloHandler).Methods(http.MethodGet)
-	r.HandleFunc("/todo", tc.PostTodoHandler).Methods(http.MethodPost)
-	r.HandleFunc("/todo", tc.GetTodoListHandler).Methods(http.MethodGet)
-	r.HandleFunc("/todo/{id:[0-9+]}", tc.GetTodoByIDHandler).Methods(http.MethodGet)
-	r.HandleFunc("/todo/{id:[0-9+]}", tc.CompleteTodoHandler).Methods(http.MethodPatch)
-	r.HandleFunc("/todo/{id:[0-9+]}", tc.DeleteTodoHandler).Methods(http.MethodDelete)
+	r.HandleFunc("/api", tc.HelloHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/todo", tc.PostTodoHandler).Methods(http.MethodPost)
+	r.HandleFunc("/api/todo", tc.GetTodoListHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/todo/{id:[0-9+]}", tc.GetTodoByIDHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/todo/{id:[0-9+]}", tc.CompleteTodoHandler).Methods(http.MethodPatch)
+	r.HandleFunc("/api/todo/{id:[0-9+]}", tc.DeleteTodoHandler).Methods(http.MethodDelete)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
 

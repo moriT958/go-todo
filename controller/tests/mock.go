@@ -32,9 +32,17 @@ func (sm ServicMock) ReadTodoByID(id int) (models.Todo, error) {
 }
 
 func (sm ServicMock) CompleteTodo(id int) (models.Todo, error) {
-	return models.Todo{}, nil
+	if !(1 <= id && id <= 3) {
+		return models.Todo{}, errors.New("at Service ReadTodoByID, no data found")
+	}
+
+	return TodoTestData[id-1], nil
 }
 
 func (sm ServicMock) DeleteTodo(id int) (models.Todo, error) {
-	return models.Todo{}, nil
+	if !(1 <= id && id <= 3) {
+		return models.Todo{}, errors.New("at Service ReadTodoByID, no data found")
+	}
+
+	return TodoTestData[id-1], nil
 }
