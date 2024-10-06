@@ -36,6 +36,7 @@ func main() {
 	s := service.NewService(db)
 	tc := controller.NewTodoController(s)
 
+	// TODO: ルータのまとめるリファクタ
 	r := mux.NewRouter()
 	r.HandleFunc("/", tc.HelloHandler).Methods(http.MethodGet)
 	r.HandleFunc("/todo", tc.PostTodoHandler).Methods(http.MethodPost)
@@ -45,6 +46,9 @@ func main() {
 	r.HandleFunc("/todo/{id:[0-9+]}", tc.DeleteTodoHandler).Methods(http.MethodDelete)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
+
+	// TODO: バリデーションミドルウェア実装
+	// TODO: エラーまとめるリファクタ
 }
 
 func loadEnv() error {
