@@ -10,10 +10,6 @@
   - todoの更新: `PATCH /todo/{id}`
   - todoの削除: `DELETE /todo/{id}`
 
-- ユーザ管理機能
-  - jwtを使用して自前で作る
-  - google認証
-
 ## 開発用コマンド
 `docker image build -t [name:tag] [path]`: appイメージのビルド   
 `docker container run --rm [imageName:tag]`: appコンテナの起動  
