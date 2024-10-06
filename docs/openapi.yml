@@ -1,0 +1,119 @@
+openapi: '3.0.3'
+
+info:
+  title: udemy-reversi-webapp
+  version: 1.0.0
+
+paths:
+  /todo:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  type: string
+                  example: "running"
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todo_id:
+                    type: integer
+                  task: 
+                    type: string
+    get:
+      summary: Get a list of todos
+      description: Retrieve a paginated list of todos.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination (starts from 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        todo_id:
+                          type: integer
+                        task:
+                          type: string
+                        done:
+                          type: boolean
+                        created_at:
+                          type: string
+                          format: date-time
+
+  /todo/{id}:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+          example: 1
+        required: true
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todo_id:
+                    type: integer
+                  task:
+                    type: string
+                  done:
+                    type: boolean
+                  created_at:
+                    type: string
+                    format: date-time
+    patch:
+      responses:
+        201:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todo_id:
+                    type: integer
+                  task: 
+                    type: string
+    delete:
+      responses:
+        201:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todo_id:
+                    type: integer
+                  task: 
+                    type: string
+
+  
