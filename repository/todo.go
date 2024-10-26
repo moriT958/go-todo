@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"go-todo/models"
-	"go-todo/repository/database"
 )
 
 const todoNumPerPage = 10
 
 // DBから得たデータを構造体に変換して返す。
-func CreateTodo(db database.DB, todo models.Todo) (models.Todo, error) {
+func CreateTodo(db *sql.DB, todo models.Todo) (models.Todo, error) {
 	// (注)returningはrowを返す
 	const query = `INSERT INTO todos (task) VALUES ($1) RETURNING id, created_at;`
 
@@ -28,7 +27,7 @@ func CreateTodo(db database.DB, todo models.Todo) (models.Todo, error) {
 	return newTodo, nil // ID,task以外はゼロ値
 }
 
-func ReadTodos(db database.DB, page int) ([]models.Todo, error) {
+func ReadTodos(db *sql.DB, page int) ([]models.Todo, error) {
 	const query = `SELECT * FROM todos LIMIT $1 OFFSET $2;`
 	if page <= 0 {
 		err := errors.New("指定可能なページは1以上からです")
@@ -57,7 +56,7 @@ func ReadTodos(db database.DB, page int) ([]models.Todo, error) {
 	return todoArray, nil
 }
 
-func ReadTodoByID(db database.DB, id int) (models.Todo, error) {
+func ReadTodoByID(db *sql.DB, id int) (models.Todo, error) {
 	const query = `SELECT * FROM todos WHERE id = $1;`
 
 	var gotTodo models.Todo
@@ -80,7 +79,7 @@ func ReadTodoByID(db database.DB, id int) (models.Todo, error) {
 	return gotTodo, nil
 }
 
-func CompleteTodo(db database.DB, id int) (models.Todo, error) {
+func CompleteTodo(db *sql.DB, id int) (models.Todo, error) {
 	const query = `UPDATE todos SET done = true WHERE id = $1 RETURNING task;`
 
 	var completedTodo models.Todo
@@ -98,7 +97,7 @@ func CompleteTodo(db database.DB, id int) (models.Todo, error) {
 	return completedTodo, nil // id,task以外はゼロ値
 }
 
-func DeleteTodo(db database.DB, id int) (models.Todo, error) {
+func DeleteTodo(db *sql.DB, id int) (models.Todo, error) {
 	const query = `DELETE FROM todos WHERE id = $1 RETURNING task;`
 
 	var deletedTodo models.Todo
