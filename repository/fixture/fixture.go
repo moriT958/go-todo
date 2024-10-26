@@ -2,6 +2,7 @@ package fixture
 
 import (
 	"database/sql"
+	"os/exec"
 
 	_ "github.com/lib/pq"
 )
@@ -34,17 +35,8 @@ func NewFixture() (*Fixture, error) {
 
 func (f *Fixture) Setup() error {
 	// テストテーブルの作成
-	if _, err := f.Tx.Exec(`
-		DROP TABLE IF EXISTS todos;
-		CREATE TABLE "todos" (
-			"id" bigserial NOT NULL,
-			"task" character varying NOT NULL,
-			"done" boolean NOT NULL DEFAULT false,
-			"created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY ("id"),
-			CONSTRAINT "todos_task_key" UNIQUE ("task")
-		);
-	`); err != nil {
+	cmd := exec.Command("atlas", "schema", "apply", "--env", "dev")
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 

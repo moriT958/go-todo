@@ -3,7 +3,7 @@ services:
     image: postgres:15
     container_name: postgres
     volumes:
-      - ./database/pqdata:/var/lib/postgresql/data
+      - ./pqdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:  
